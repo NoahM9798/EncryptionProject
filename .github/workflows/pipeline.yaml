@@ -1,0 +1,55 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, dev ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  # Job 1: Build and Run Unit Tests
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '9.0.x'
+
+    - name: Restore dependencies
+      run: dotnet restore
+
+    - name: Build project
+      run: dotnet build --configuration Release --no-restore
+
+    - name: Run Unit Tests (Requirement for VG)
+      run: dotnet test --no-build --verbosity normal
+
+  # Job 2: Deploy to AWS (Only runs on Main after successful tests)
+  deploy:
+    needs: build-and-test
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Publish API
+      run: dotnet publish EncryptionAPI/EncryptionAPI.csproj -c Release -o ./publish
+
+    - name: Create Deployment Package (Zip)
+      run: cd ./publish && zip -r ../deploy.zip .
+
+    - name: Deploy to AWS Elastic Beanstalk
+      uses: einaregilsson/beanstalk-deploy@v22
+      with:
+        aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        application_name: YourAppName           # Match your AWS setup
+        environment_name: YourAppEnv-env       # Match your AWS setup
+        version_label: ${{ github.sha }}
+        region: eu-north-1
+        deployment_package: deploy.zip
