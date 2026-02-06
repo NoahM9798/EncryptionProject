@@ -25,7 +25,7 @@ jobs:
     - name: Build project
       run: dotnet build --configuration Release --no-restore
 
-    - name: Run Unit Tests (Requirement for VG)
+    - name: Run Unit Tests
       run: dotnet test --no-build --verbosity normal
 
   # Job 2: Deploy to AWS (Only runs on Main after successful tests)
