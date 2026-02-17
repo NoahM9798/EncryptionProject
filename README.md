@@ -6,6 +6,8 @@ A .NET 9 API demonstrating a full CI/CD pipeline with automated testing and AWS 
 # Live Demo
 Test the API on AWS -> http://encryptionapi-env.eba-rve3rwpv.eu-north-1.elasticbeanstalk.com/encrypt?text=hello
 
+*(Service discontinued)*
+
 # CI/CD & Git Flow
 This project uses Git Flow to manage code quality:
 
